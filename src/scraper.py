@@ -108,8 +108,7 @@ class WTTJScraper:
             logging.error("Driver non initialisé. Abandon de la recherche.")
             return []
 
-        # `quote_plus` encode le terme de recherche pour l'inclure sans risque dans une URL
-        # (ex: "Data Scientist" devient "Data+Scientist").
+        # `quote_plus` encode le terme de recherche pour l'inclure sans risque dans une URL (ex: "Data Scientist" devient "Data+Scientist").
         search_term_encoded = quote_plus(search_term)
         
         all_offers = []
