@@ -26,9 +26,12 @@ st.set_page_config(
 # Permet d'injecter du CSS pour peaufiner le style de l'application.
 st.markdown("""
 <style>
-    /* On ajoute un peu d'espace en haut de la page principale. */
+    /* On contraint la largeur du conteneur principal pour un affichage plus compact et centré. */
     .main .block-container {
-        padding-top: 2rem;
+        max-width: 900px; /* Ajustez cette valeur si nécessaire */
+        padding-left: 1rem;
+        padding-right: 1rem;
+        margin: auto;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -51,7 +54,7 @@ def load_svg(svg_file: str) -> str | None:
 logo_svg_base64 = load_svg("assets/SkillScope.svg")
 if logo_svg_base64:
     st.markdown(
-        f'<div style="text-align: center;"><img src="{logo_svg_base64}" width="300"></div>',
+        f'<div style="text-align: center;"><img src="{logo_svg_base64}" width="280"></div>', # Logo légèrement réduit
         unsafe_allow_html=True
     )
 else:
@@ -66,10 +69,9 @@ Un outil pour extraire et quantifier les compétences les plus demandées sur le
 """, unsafe_allow_html=True)
 st.markdown("---")
 
-
 # --- Barre de recherche principale ---
 # On utilise les colonnes pour aligner le champ de texte et le bouton.
-col1, col2 = st.columns([4, 1]) # La première colonne est 4 fois plus large que la seconde.
+col1, col2 = st.columns([3, 1]) # La première colonne est 3 fois plus large que la seconde.
 
 with col1:
     job_to_scrape = st.text_input(
@@ -157,20 +159,21 @@ with placeholder.container():
             
             # Affichage des métriques clés.
             col1, col2, col3 = st.columns(3)
-            col1.metric("Offres avec Compétences", f"{len(df)}")
+            col1.metric("Offres Analysées", f"{len(df)}")
             col2.metric("Compétences Uniques", f"{len(skill_counts)}")
             col3.metric("Top Compétence", skill_counts.iloc[0]['Compétence'])
 
             st.subheader("Classement des compétences", anchor=False)
             # Ajout d'un champ de recherche pour filtrer le tableau de compétences.
-            search_skill = st.text_input("Rechercher une compétence :", placeholder="Ex: Power BI, Git...")
+            search_skill = st.text_input("Rechercher une compétence dans le tableau :", placeholder="Ex: Power BI, Git...")
             if search_skill:
                 skill_counts_display = skill_counts[skill_counts['Compétence'].str.contains(search_skill, case=False, na=False)]
             else:
                 skill_counts_display = skill_counts
 
             # `st.dataframe` est utilisé pour afficher les DataFrames Pandas de manière interactive.
-            st.dataframe(skill_counts_display, use_container_width=True, hide_index=True, height=560)
+            # Hauteur ajustée pour afficher 10 lignes + l'en-tête.
+            st.dataframe(skill_counts_display, use_container_width=True, hide_index=True, height=385) 
         else:
             st.warning("Aucune compétence n'a pu être extraite des offres analysées.")
             
@@ -181,21 +184,19 @@ with placeholder.container():
 
 # --- Pied de page (Footer) ---
 st.markdown("---")
-# Utiliser un expander est une bonne solution pour cacher les informations
-# tout en les gardant facilement accessibles.
-with st.expander("À propos de SkillScope et du développeur"):
-    st.markdown("""
-    <div style="text-align: center; font-family: 'Source Sans Pro', sans-serif;">
-        <p style="font-size: 0.9em; margin-bottom: 10px;">
-            SkillScope a été développé par <strong style="color: #F9B15C;">Hamza Kachmir</strong>
-        </p>
-        <p style="font-size: 1.1em;">
-            <a href="https://portfolio-hamza-kachmir.vercel.app/" target="_blank" style="text-decoration: none; margin-right: 15px;">
-                <strong style="color: #F9B15C;">Portfolio</strong>
-            </a>
-            <a href="https://www.linkedin.com/in/hamza-kachmir/" target="_blank" style="text-decoration: none;">
-                <strong style="color: #F9B15C;">LinkedIn</strong>
-            </a>
-        </p>
-    </div>
-    """, unsafe_allow_html=True)
+# Le footer est maintenant directement visible en bas de la page.
+st.markdown("""
+<div style="text-align: center; font-family: 'Source Sans Pro', sans-serif;">
+    <p style="font-size: 0.9em; margin-bottom: 10px;">
+        SkillScope a été développé par <strong style="color: #F9B15C;">Hamza Kachmir</strong>
+    </p>
+    <p style="font-size: 1.1em;">
+        <a href="https://portfolio-hamza-kachmir.vercel.app/" target="_blank" style="text-decoration: none; margin-right: 15px;">
+            <strong style="color: #F9B15C;">Portfolio</strong>
+        </a>
+        <a href="https://www.linkedin.com/in/hamza-kachmir/" target="_blank" style="text-decoration: none;">
+            <strong style="color: #F9B15C;">LinkedIn</strong>
+        </a>
+    </p>
+</div>
+""", unsafe_allow_html=True)
