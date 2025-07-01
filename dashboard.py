@@ -1,10 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-Ce module est l'application principale Streamlit pour SkillScope.
-Il définit l'interface utilisateur, gère les entrées et orchestre
-l'appel au pipeline pour afficher les résultats.
-"""
-
 import streamlit as st
 import pandas as pd
 import numpy as np
