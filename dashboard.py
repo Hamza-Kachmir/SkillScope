@@ -196,7 +196,7 @@ st.markdown("---")
 st.markdown("""
 <div style="text-align: center; font-family: 'Source Sans Pro', sans-serif;">
     <p style="font-size: 0.9em; margin-bottom: 10px;">
-        SkillScope a été développé par <strong style="color: #F9B15C;">Hamza Kachmir</strong>
+        SkillScope a été développé par <strong style="color: #2474c5;">Hamza Kachmir</strong>
     </p>
     <p style="font-size: 1.1em;">
         <a href="https://portfolio-hamza-kachmir.vercel.app/" target="_blank" style="text-decoration: none; margin-right: 15px;">
