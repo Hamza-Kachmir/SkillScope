@@ -1,0 +1,24 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Environnements virtuels
+venv/
+.venv/
+
+# Fichiers temporaires/OS
+*~
+*.bak
+*.swp
+.DS_Store
+
+# Données générées
+data/
+logs/
+
+# Configuration sensible
+config.ini
+.env
+.streamlit/secrets.toml
