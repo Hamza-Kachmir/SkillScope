@@ -4,13 +4,13 @@ Une application web pour analyser et classer en temps réel les compétences les
 
 ---
 
-### 🚀 Contexte du Projet
+### Contexte du Projet
 
 Chaque jour, des milliers d'offres d'emploi sont publiées, chacune avec sa propre liste de compétences. Dans ce volume d'informations, comment identifier le "signal" du "bruit" ? Quelles sont les compétences qui reviennent systématiquement et définissent réellement un poste aujourd'hui, au-delà des fiches de poste génériques ?
 
 **SkillScope** a été créé pour répondre à cette problématique. Cet outil analyse un grand nombre d'offres d'emploi en direct pour extraire, nettoyer et classer les compétences les plus fréquemment mentionnées, offrant ainsi un aperçu précis et basé sur la donnée des attentes du marché.
 
-### 🛠️ Comment ça marche ? Le Pipeline
+### Comment ça marche ? Le Pipeline
 
 Lorsqu'un utilisateur lance une analyse, SkillScope exécute un pipeline de traitement de données en plusieurs étapes :
 
@@ -26,7 +26,7 @@ Lorsqu'un utilisateur lance une analyse, SkillScope exécute un pipeline de trai
 
 ---
 
-### ⚙️ Technologies Utilisées
+### Technologies Utilisées
 
 * **Backend :** Python
 * **Interface Web :** NiceGUI
