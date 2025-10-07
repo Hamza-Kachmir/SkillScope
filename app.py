@@ -185,16 +185,9 @@ def main_page(client: Client):
     app.add_static_files('/assets', 'assets')
     ui.query('body').style('background-color: #f8fafc;')
 
-    def refresh_page(e):
-        ui.run_javascript("window.location.reload();")
-
     with ui.header(elevated=True).classes('bg-white text-black px-4 py-2'):
         with ui.row().classes('w-full items-center justify-center'):
-            ui.image('/assets/SkillScope.svg') \
-                .classes('cursor-pointer w-36 h-auto max-w-full transition-transform duration-300 hover:scale-105') \
-                .style('max-width: 9rem;') \
-                .on('click', refresh_page)
-
+            ui.image('/assets/SkillScope.svg').classes('w-36 md:w-44 h-auto max-w-full')
 
     with ui.column().classes('w-full max-w-4xl mx-auto p-4 md:p-8 items-center gap-4'):
         ui.markdown("### Un outil pour analyser les compétences les plus demandées sur le marché de l'emploi.").classes('text-center font-light text-gray-800')
@@ -202,37 +195,23 @@ def main_page(client: Client):
         status_container = ui.row().classes('w-full justify-center')
         ui.html('<p style="font-size: 0.85em; color: #6b7280; text-align: center;">Cette analyse est indicative et peut contenir des variations ou incohérences dues à l\'IA. Les résultats sont une représentation du marché.</p>').classes('mt-1 mb-4')
 
-
-        # --- Définition de la fonction de gestion EN PREMIER ---
-        # Déclaration initiale des conteneurs pour les rendre accessibles dans handle_analysis_click
-        # Ils sont cachés par défaut pour être affichés uniquement après la recherche.
-        # Utilisation de placeholders temporaires pour l'accès
-        job_input = ui.input(label='', placeholder='').classes('hidden')
-        launch_button = ui.button('', color='primary').classes('hidden')
-        results_container = ui.column().classes('hidden') # C'est celui qui contient la synthèse.
+        with ui.row().classes('w-full max-w-lg items-stretch'):
+            job_input = ui.input(placeholder="Chercher un métier").props('outlined dense clearable').classes('w-full text-lg')
 
         async def handle_analysis_click():
             original_job_term = job_input.value
             normalized_job_term = _normalize_search_term(original_job_term)
             session_logger.info(f"Déclenchement d'une nouvelle analyse pour '{original_job_term}'.")
             if not original_job_term: return
-            
-            # CORRECTION DE L'ERREUR Attribute Error: 
-            # Utiliser classes(remove='hidden') pour retirer la classe
-            results_container.classes(remove='hidden')
-            results_container.classes('w-full mt-6')
-
             if normalized_job_term in _active_searches:
                 session_logger.info(f"Recherche pour '{normalized_job_term}' déjà en cours; l'utilisateur patiente.")
                 results_container.clear()
                 with results_container:
                     ui.label(f"Une analyse pour '{original_job_term}' est déjà en cours. Veuillez patienter...").classes('text-gray-600 mt-4 text-lg')
                 try:
-                    # En attente de la fin de la recherche concurrente (pour ne pas lancer 2x la même)
-                    await _active_searches[normalized_job_term] 
+                    await _active_searches[normalized_job_term]
                     session_logger.info("Les résultats sont maintenant disponibles, potentiellement depuis le cache.")
-                    # Relancer le pipeline pour obtenir les résultats (qui devraient être cachés rapidement)
-                    results_for_display = await _run_analysis_pipeline(normalized_job_term, session_logger) 
+                    results_for_display = await _run_analysis_pipeline(normalized_job_term, session_logger)
                     if results_for_display:
                         _store_results_for_client_export(client.id, results_for_display, original_job_term)
                         display_results(results_container, results_for_display, original_job_term)
@@ -246,7 +225,6 @@ def main_page(client: Client):
                     if normalized_job_term in _active_searches and _active_searches[normalized_job_term].done():
                         del _active_searches[normalized_job_term]
                 return
-                
             search_future = asyncio.Future()
             _active_searches[normalized_job_term] = search_future
             ui_log_handler_instance = None
@@ -256,94 +234,58 @@ def main_page(client: Client):
                     with ui.column().classes('w-full p-4 items-center'):
                         ui.spinner(size='lg', color='primary')
                         ui.html(f"Analyse en cours pour <strong>'{original_job_term}'</strong>...").classes('text-gray-600 mt-4 text-lg')
-                
-                if not IS_PRODUCTION_MODE and log_view:
+                if not IS_PRODUCTION_MODE:
                     ui_log_handler_instance = UiLogHandler(log_view, all_log_messages)
                     session_logger.addHandler(ui_log_handler_instance)
-                    
                 results = await _run_analysis_pipeline(normalized_job_term, session_logger)
-                
                 if results is None:
                     results_container.clear()
                     with results_container: ui.label(f"Aucun résultat trouvé pour '{original_job_term}'.").classes('text-negative')
                     return
-                    
                 _store_results_for_client_export(client.id, results, original_job_term)
                 display_results(results_container, results, original_job_term)
-                
             except Exception as e:
                 results_container.clear()
                 with results_container: ui.label(f"Une erreur est survenue : {e}").classes('text-negative')
-                
             finally:
                 if ui_log_handler_instance and ui_log_handler_instance in session_logger.handlers:
                     session_logger.removeHandler(ui_log_handler_instance)
-                
                 if not search_future.done(): search_future.set_result(True)
-                
                 if normalized_job_term in _active_searches: del _active_searches[normalized_job_term]
-                
-                session_logger.info("Fin du processus global de l'analyse.")
+            session_logger.info("Fin du processus global de l'analyse.")
 
-        # --- Définition de la zone de recherche (Input et Bouton) ---
-        # Ceci est la zone qui doit rester en haut.
-        with ui.column().classes('w-full max-w-lg mx-auto p-0 items-center gap-4'):
-            
-            with ui.row().classes('w-full items-stretch'):
-                # Réaffectation de la variable job_input à l'élément visible
-                job_input.delete() # Supprime l'élément caché temporaire
-                job_input = ui.input(label='Rechercher un métier', placeholder='Ex: Développeur web').classes('w-full text-lg') \
-                    .props('clearable clear-icon="close"')
-            
-            # Réaffectation de la variable launch_button à l'élément visible
-            launch_button.delete() # Supprime l'élément caché temporaire
-            launch_button = ui.button("Lancer l'analyse", on_click=handle_analysis_click).props('color=primary').classes('w-full mt-4')
-
-        # Liaison des événements après la définition de la fonction et des éléments
-        # Ajout de 'submit' pour une meilleure compatibilité des claviers virtuels mobiles (iPhone)
-        job_input.on('submit', handler=handle_analysis_click) 
-        job_input.on('keydown.enter', handler=handle_analysis_click)
+        launch_button = ui.button("Lancer l'analyse", on_click=handle_analysis_click).props('color=primary').classes('w-full max-w-lg mt-4')
         launch_button.bind_enabled_from(job_input, 'value', backward=bool)
-        
-        # Le results_container doit être défini DANS ce bloc de page pour être affiché
-        # APRES l'input et le bouton. On le retire du conteneur temporaire et on le place ici.
-        results_container.delete() # Supprime l'élément caché temporaire
-        results_container = ui.column().classes('hidden w-full mt-6') # Le conteneur final, initialement caché
-        
-        # --- FIN DU BLOC D'INTERFACE PRINCIPAL (w-full max-w-4xl) ---
-        # La variable results_container est maintenant un élément NiceGUI réel dans le flux.
+        results_container = ui.column().classes('w-full mt-6')
 
+        async def update_gemini_status_display():
+            status = await check_gemini_status(session_logger)
+            color, message = status.value
+            status_container.clear()
+            with status_container:
+                ui.html(f'<div class="status-banner" style="background-color: {color};">{message}</div>')
 
-    with ui.column().classes('w-full items-center mt-8 pt-2 border-t'):
-        ui.html('<p style="font-size: 0.875em; color: #6b7280;"><b style="color: black;">Développé par</b> <span style="color: #f9b15c; font-weight: bold;">Hamza Kachmir</span></p>')
-        with ui.row().classes('gap-4 mt-2 footer-links'):
-            ui.html('<a href="https://portfolio-hamza-kachmir.vercel.app/" target="_blank">Portfolio</a>')
-            ui.html('<a href="https://www.linkedin.com/in/hamza-kachmir/" target="_blank">LinkedIn</a>')
+        client.on_connect(update_gemini_status_display)
+        ui.timer(60.0, update_gemini_status_display)
 
-    if not IS_PRODUCTION_MODE:
-        with ui.expansion("Voir les logs & Outils", icon='o_code').classes('w-full max-w-4xl mx-auto mt-12 mb-8 bg-gray-50 rounded-lg'):
-            with ui.column().classes('w-full p-2'):
-                log_view = ui.log().classes('w-full h-40 bg-gray-800 text-white font-mono text-xs')
-                with ui.row().classes('mt-2 gap-2'):
-                    ui.button('Vider tout le cache', on_click=lambda: (flush_all_cache(), ui.notify('Cache vidé avec succès !', color='positive')), color='red-6', icon='o_delete_forever')
-                    ui.button('Copier les logs', on_click=lambda: ui.run_javascript(f'navigator.clipboard.writeText(`{"\\n".join(all_log_messages)}`)'), icon='o_content_copy')
-                # Important : Ré-associer le handler du log après que log_view soit défini
-                if 'log_view' in locals() and log_view is not None:
-                    session_logger.addHandler(UiLogHandler(log_view, all_log_messages))
-    
+        with ui.column().classes('w-full items-center mt-8 pt-2 border-t'):
+            ui.html('<p style="font-size: 0.875em; color: #6b7280;"><b style="color: black;">Développé par</b> <span style="color: #f9b15c; font-weight: bold;">Hamza Kachmir</span></p>')
+            with ui.row().classes('gap-4 mt-2 footer-links'):
+                ui.html('<a href="https://portfolio-hamza-kachmir.vercel.app/" target="_blank">Portfolio</a>')
+                ui.html('<a href="https://www.linkedin.com/in/hamza-kachmir/" target="_blank">LinkedIn</a>')
 
-    # --- Gestion du statut Gemini ---
-    async def update_gemini_status_display():
-        status = await check_gemini_status(session_logger)
-        color, message = status.value
-        status_container.clear()
-        with status_container:
-            ui.html(f'<div class="status-banner" style="background-color: {color};">{message}</div>')
-        # L'appel à update() est crucial pour forcer le rafraîchissement
-        status_container.update() 
-
-    client.on_connect(update_gemini_status_display)
-    ui.timer(60.0, update_gemini_status_display)
+        if not IS_PRODUCTION_MODE:
+            with ui.expansion("Voir les logs & Outils", icon='o_code').classes('w-full mt-12 bg-gray-50 rounded-lg'):
+                with ui.column().classes('w-full p-2'):
+                    log_view = ui.log().classes('w-full h-40 bg-gray-800 text-white font-mono text-xs')
+                    # Le handler pour le logger de la session est ajouté dans le bloc 'if not IS_PRODUCTION_MODE' de handle_analysis_click
+                    with ui.row().classes('mt-2 gap-2'):
+                        ui.button('Vider tout le cache', on_click=lambda: (flush_all_cache(), ui.notify('Cache vidé avec succès !', color='positive')), color='red-6', icon='o_delete_forever')
+                        ui.button('Copier les logs', on_click=lambda: ui.run_javascript(f'navigator.clipboard.writeText(`{"\\n".join(all_log_messages)}`)'), icon='o_content_copy')
+                    # Le handler est maintenant ajouté conditionnellement au logger de la session
+                    # pour éviter d'avoir un handler sans cible au démarrage.
+                    if 'log_view' in locals() and log_view is not None:
+                         session_logger.addHandler(UiLogHandler(log_view, all_log_messages))
 
 
 if __name__ in {"__main__", "__mp_main__"}:
