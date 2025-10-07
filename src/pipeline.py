@@ -9,7 +9,7 @@ from src.cache_manager import get_cached_results, add_to_cache
 from src.gemini_extractor import extract_skills_with_gemini, initialize_gemini, consolidate_skills_with_gemini
 
 # --- Configuration du pipeline ---
-GEMINI_BATCH_SIZE = 5
+GEMINI_BATCH_SIZE = 10
 TOP_SKILLS_FINAL_LIMIT = 20
 CONSOLIDATION_CANDIDATE_LIMIT = 30
 
@@ -37,7 +37,7 @@ def _aggregate_results(batch_results: List[Optional[Dict]]) -> Dict[str, Any]:
                     if not skill_stripped:
                         continue
                     
-                    # Clé de comptage simple et robuste (minuscule, sans accent)
+                    # Clé de comptage simple et robuste
                     counting_key = unicodedata.normalize('NFKD', skill_stripped).encode('ascii', 'ignore').decode('utf-8').lower()
                     
                     if counting_key not in skill_display_names:
@@ -68,7 +68,7 @@ async def get_skills_for_job(job_title: str, num_offers: int, logger: logging.Lo
     """
     logger.info(f"Début du processus pour '{job_title}' ({num_offers} offres).")
 
-    cache_key = f"v2:{job_title}@{num_offers}" # Version 2 de la clé de cache
+    cache_key = f"v2:{job_title}@{num_offers}"
     cached_results = get_cached_results(cache_key)
     if cached_results:
         logger.info(f"Résultats trouvés dans le cache (v2) pour '{cache_key}'.")
