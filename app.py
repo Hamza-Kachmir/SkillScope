@@ -202,8 +202,10 @@ def main_page(client: Client):
         status_container = ui.row().classes('w-full justify-center')
         ui.html('<p style="font-size: 0.85em; color: #6b7280; text-align: center;">Cette analyse est indicative et peut contenir des variations ou incohérences dues à l\'IA. Les résultats sont une représentation du marché.</p>').classes('mt-1 mb-4')
 
-        with ui.row().classes('w-full max-w-lg items-stretch'):
-            job_input = ui.input(label='Rechercher un métier', placeholder='Ex: Développeur web').classes('w-full text-lg')
+    with ui.row().classes('w-full max-w-lg items-stretch'):
+        job_input = ui.input(label='Rechercher un métier', placeholder='Ex: Développeur web').classes('w-full text-lg') \
+        .props('clearable clear-icon="close"') \
+        .on('keydown.enter', handler=handle_analysis_click)
 
         async def handle_analysis_click():
             original_job_term = job_input.value
@@ -271,6 +273,7 @@ def main_page(client: Client):
             status_container.clear()
             with status_container:
                 ui.html(f'<div class="status-banner" style="background-color: {color};">{message}</div>')
+            status_container.update() 
 
         client.on_connect(update_gemini_status_display)
         ui.timer(60.0, update_gemini_status_display)
