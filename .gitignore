@@ -1,0 +1,14 @@
+node_modules/
+dist/
+.env
+.env.*.local
+primal-insight-*.json
+service-account*.json
+backend/.venv/
+backend/**/__pycache__/
+backend/.pytest_cache/
+backend/.ruff_cache/
+*.py[cod]
+.DS_Store
+.idea/
+.vscode/

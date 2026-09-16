@@ -1,0 +1,10 @@
+node_modules
+dist
+.git
+.github
+.env
+primal-insight-*.json
+service-account*.json
+backend
+README.md
+start-dev.ps1
