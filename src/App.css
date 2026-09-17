@@ -1,8 +1,11 @@
 .app-shell {
   width: 100%;
   min-height: 100vh;
+  min-height: 100dvh;
   padding-top: 72px;
   padding-bottom: 72px;
+  display: flex;
+  flex-direction: column;
   background: #f4f6f8;
   overflow-x: clip;
 }
@@ -51,9 +54,11 @@
   box-shadow: none;
 }
 main {
+  width: 100%;
   max-width: 1240px;
   margin: 0 auto;
   padding: 52px 24px 72px;
+  flex: 1 0 auto;
 }
 .eyebrow {
   display: flex;
@@ -893,6 +898,13 @@ h1 {
   height: 100%;
   background: var(--blue);
   border-radius: 0 5px 5px 0;
+  transition: background-color 0.18s ease;
+}
+
+@media (hover: hover) {
+  .mobile-skill-row:hover .mobile-skill-fill {
+    background: #1e64ab;
+  }
 }
 
 .mobile-skill-value {

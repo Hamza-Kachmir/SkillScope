@@ -378,7 +378,7 @@ function App() {
                     role="group"
                     aria-label="Métiers ROME"
                   >
-                    {suggestions.map((suggestion) => (
+                    {suggestions.slice(0, 3).map((suggestion) => (
                       <button
                         type="button"
                         role="option"
